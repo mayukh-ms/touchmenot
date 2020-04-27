@@ -1,8 +1,9 @@
 'use strict'
+var inTime = -1;
 
 var PubSub = new (function() {
   var events = {};
-
+   
   this.publish = function(name, data) {
     var handlers = events[name];
     if(!!handlers === false) return;
@@ -34,11 +35,21 @@ const vcanvas = document.getElementById("videocanvas");
 
 var mySubscriber = function (data) {	
 	var btn = document.getElementById("test_btn");
-	var curRect = btn.getBoundingClientRect();
+	var curRect = btn.getBoundingClientRect()
 	if(data && data.x && data.y){		
 		if(data.x >= curRect.left && data.x <= curRect.right &&
 		 data.y >= curRect.top && data.y <= curRect.bottom){
-			 console.log("Clicked!!!");
+			 if(inTime === -1){
+				 inTime = data.time;
+				 console.log("Countdown Starts")
+			 }
+			 else if(Math.abs(inTime - data.time) > 3){
+				alert("Clicked after 3 seconds");
+				inTime = -1;
+			 }
+		 } else {
+			 console.log("reset -> Oustide box")
+			 inTime = -1;
 		 }
 	}
 };
@@ -110,7 +121,8 @@ function runDetection() {
 			document.getElementById("cursor_icon").style.left=Math.round(prevx)+'px';
 			var pos = {
 				"x":Math.round(prevx),
-				"y":Math.round(prevy)
+				"y":Math.round(prevy),
+				"time": (new Date().getTime() / 1000)
 			};
 			
 			PubSub.publish('mytopic', pos);
